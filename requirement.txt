@@ -1,0 +1,8 @@
+numpy<2.0
+torch==2.2.2+cpu
+torchvision==0.17.2+cpu
+sentence-transformers==5.0.0
+transformers==4.46.0
+scikit-learn==1.4.2
+pdfminer.six
+joblib==1.4.2
