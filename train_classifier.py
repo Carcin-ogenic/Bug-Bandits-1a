@@ -1,31 +1,39 @@
+#!/usr/bin/env python3
 """
-Embed texts with MiniLM (PyTorch backend) + numeric layout features,
-train logistic-regression, save clf.pkl
+Train logistic regression on ONNX MiniLM-L6 embeddings + layout features.
 """
+import pandas as pd, numpy as np, joblib, onnxruntime as ort
 from pathlib import Path
-import joblib, pandas as pd, numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import LabelEncoder
-from sentence_transformers import SentenceTransformer
+from transformers import AutoTokenizer
 
-df = pd.read_csv("train.csv")
-embedder = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")  # auto-download
-emb = embedder.encode(df.text.tolist(), batch_size=128, show_progress_bar=True)
+root    = Path(__file__).resolve().parent
+onnxdir = root / "models" / "all-MiniLM-L6-v2-onnx"
 
-nums = df[["rel_size","bold","indent","caps","numbered"]].astype("float32").values
-X = np.hstack([emb, nums])
+# ONNX session + tokenizer (offline)
+sess = ort.InferenceSession(str(onnxdir/"model.onnx"),
+                            providers=["CPUExecutionProvider"])
+tok  = AutoTokenizer.from_pretrained(onnxdir, local_files_only=True)
 
-lab = LabelEncoder()
-y = lab.fit_transform(df.label)
+def embed(lines):
+    batch = tok(lines, padding=True, truncation=True,
+                max_length=64, return_tensors="np",
+                return_token_type_ids=True)
+    inputs = {k: v.astype("int64") for k, v in batch.items()}
+    hidden, = sess.run(None, inputs)              # (B, L, 384)
+    mask = inputs["attention_mask"][:, :, None]   # (B, L, 1)
+    return (hidden * mask).sum(1) / mask.sum(1)   # masked mean-pool
 
-clf = LogisticRegression(
-        max_iter=400,
-        multi_class="multinomial",
-        class_weight="balanced")      # <— evens out class frequencies
-clf.fit(X, y)
+df = pd.read_csv("train.csv")                     # BODY kept
+Xtxt = embed(df.text.tolist())
+Xnum = df[["rel_size","bold","caps","numbered"]].to_numpy("float32")
+X    = np.hstack([Xtxt, Xnum])
 
-model_dir = (Path(__file__).resolve().parent / "models")
-model_dir.mkdir(parents=True, exist_ok=True)
+le = LabelEncoder(); y = le.fit_transform(df.label)
+clf = LogisticRegression(max_iter=400, multi_class="multinomial",
+                         class_weight="balanced").fit(X, y)
 
-joblib.dump({"clf": clf, "labels": lab.classes_}, model_dir / "clf.pkl")
-print("✅  wrote", model_dir / "clf.pkl")
+out = root / "models"; out.mkdir(exist_ok=True)
+joblib.dump({"clf": clf, "labels": le.classes_}, out/"clf.pkl")
+print("✅  saved models/clf.pkl")

@@ -1,106 +1,93 @@
 #!/usr/bin/env python3
 """
-PDF → JSON outline
-• MiniLM (sentence-transformers, PyTorch CPU)
-• 5 layout features
-• logistic-regression head in models/clf.pkl
+Fast inference – PyMuPDF + ONNX MiniLM-L6   (canonical text, merged lines)
 """
-import json, re, sys, time, joblib
+import json, re, sys, time, html, unicodedata, numpy as np, joblib, onnxruntime as ort
 from pathlib import Path
-import numpy as np
-from sentence_transformers import SentenceTransformer
-from pdfminer.high_level import extract_pages
-from pdfminer.layout import LTTextBoxHorizontal, LTTextLineHorizontal, LTChar
+import fitz
+from transformers import AutoTokenizer
 
-# ───────── constants ─────────
-NUM_RE = re.compile(r"^\s*(\d+(\.\d+)*|[IVXLC]+\.)\s")
+HDR_RE = re.compile(r"^\s*(\d+(\.\d+)*|[IVXLC]+\.)\s")
+CAPS_TH, RATIO = 0.60, 1.20
 
-# ───────── load models ───────
-embedder = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+root   = Path(__file__).resolve().parent
+onnxdir = root / "models" / "all-MiniLM-L6-v2-onnx"
+sess   = ort.InferenceSession(str(onnxdir/"model.onnx"),
+                              providers=["CPUExecutionProvider"])
+tok    = AutoTokenizer.from_pretrained(onnxdir, local_files_only=True)
+clf, LABELS = joblib.load(root/"models"/"clf.pkl").values()
 
-root = Path(__file__).resolve()
-while root != root.parent and not (root / "models" / "clf.pkl").exists():
-    root = root.parent
-clf_path = root / "models" / "clf.pkl"
-ART = joblib.load(clf_path)
-clf, LABELS = ART["clf"], ART["labels"]
+# ---------- helpers ---------------------------------------------------
+def norm(t): return re.sub(r"\s+", " ", unicodedata.normalize("NFKC", html.unescape(t))).strip()
 
-# ───────── helpers ───────────
-def parse_pdf(pdf: Path):
-    rows, sizes = [], []
-    for pg, layout in enumerate(extract_pages(pdf), 0):
-        for box in layout:
-            if not isinstance(box, (LTTextBoxHorizontal, LTTextLineHorizontal)):
-                continue
-            for ln in ([box] if isinstance(box, LTTextLineHorizontal)
-                       else [l for l in box if isinstance(l, LTTextLineHorizontal)]):
-                chars = [c for c in ln if isinstance(c, LTChar)]
-                if not chars:
-                    continue
-                txt = ln.get_text().strip()
-                if len(txt) < 3:
-                    continue
-                size = max(c.size for c in chars)
-                rows.append({
-                    "text": txt,
-                    "page": pg,
-                    "size": size,
-                    "bold": int(any("Bold" in c.fontname or "Black" in c.fontname
-                                    for c in chars)),
-                    "indent": ln.x0,
-                    "caps":  sum(map(str.isupper, txt)) / len(txt),
-                    "num":   int(bool(NUM_RE.match(txt)))
-                })
-                sizes.append(size)
-    return rows, (np.median(sizes) if sizes else 1.0)
+def embed(txt):
+    batch = tok(txt, padding=True, truncation=True,
+                max_length=64, return_tensors="np",
+                return_token_type_ids=True)
+    inp = {k: v.astype("int64") for k, v in batch.items()}
+    hid, = sess.run(None, inp)
+    mask = inp["attention_mask"][:, :, None]
+    return (hid*mask).sum(1) / mask.sum(1)
 
-# ───────── core ──────────────
-def predict_outline(pdf: Path):
-    rows, med = parse_pdf(pdf)
+def rows_of(pdf):
+    doc = fitz.open(pdf)
+    sizes = [s["size"] for p in doc
+             for b in p.get_text("dict")["blocks"]
+             for l in b.get("lines", [])
+             for s in l.get("spans", [])]
+    med = np.median(sizes) if sizes else 1.0
+    raw = []
+    for pg, page in enumerate(doc):
+        for blk in page.get_text("dict")["blocks"]:
+            for ln in blk.get("lines", []):
+                txt = "".join(s["text"] for s in ln.get("spans", [])).strip()
+                if len(txt) < 3: continue
+                sp  = ln["spans"][0]
+                raw.append({"page":pg, "y":sp["bbox"][1], "text":norm(txt),
+                            "rel":sp["size"]/med,
+                            "bold":int(sp["flags"]&2!=0),
+                            "caps":sum(map(str.isupper, txt))/len(txt),
+                            "num":int(bool(HDR_RE.match(txt)))})
+    doc.close()
+
+    # merge split lines
+    raw.sort(key=lambda r:(r["page"], r["y"]))
+    merged=[]
+    for r in raw:
+        if merged and r["page"]==merged[-1]["page"] and abs(r["y"]-merged[-1]["y"])<1:
+            merged[-1]["text"] += " " + r["text"]
+        else:
+            merged.append(r)
+    return [r for r in merged if r["rel"]>=RATIO or r["bold"] or r["caps"]>CAPS_TH or r["num"]]
+
+# ---------- inference -------------------------------------------------
+def outline(pdf):
+    rows = rows_of(pdf)
     if not rows:
-        return {"title": "", "outline": []}
+        return {"title":"", "outline":[]}
 
-    num = np.array([[r["size"]/med, r["bold"], r["indent"]/600, r["caps"], r["num"]]
-                    for r in rows], dtype=np.float32)
+    feats = np.array([[r["rel"],r["bold"],r["caps"],r["num"]] for r in rows], np.float32)
+    X = np.hstack([embed([r["text"] for r in rows]), feats])
+    pred = clf.predict(X)
 
-    emb = embedder.encode([r["text"] for r in rows],
-                          batch_size=256, convert_to_numpy=True)
-    if emb.ndim == 1:
-        emb = emb.reshape(1, -1)
+    title, out = "", []
+    for r,lid in zip(rows,pred):
+        lbl=LABELS[lid]
+        if lbl=="TITLE" and not title:
+            title=r["text"]; continue
+        if lbl in {"H1","H2","H3"}:
+            out.append({"level":lbl,"text":r["text"],"page":r["page"]})
+    return {"title":title, "outline":out}
 
-    X = np.hstack([emb, num])
-    preds = clf.predict(X)
+def main(src,dst):
+    src,dst=map(Path,(src,dst)); dst.mkdir(exist_ok=True,parents=True)
+    for pdf in src.glob("*.pdf"):
+        t=time.time(); res=outline(pdf)
+        with open(dst/f"{pdf.stem}.json","w",encoding="utf-8") as f:
+            json.dump(res,f,indent=2,ensure_ascii=False)
+        print(f"{pdf.name}: {time.time()-t:4.2f}s")
 
-    title, outline = None, []
-    for r, idx in zip(rows, preds):
-        lbl = LABELS[idx]
-        if lbl == "TITLE":
-            if title is None:                      # keep first only
-                title = r["text"]
-            continue                               # don't duplicate in outline
-        if lbl in {"H1", "H2", "H3"}:
-            outline.append({"level": lbl,
-                            "text":  r["text"],
-                            "page":  r["page"]})
-
-    # leave title empty if the model never predicted TITLE
-    if title is None:
-        title = ""
-
-    return {"title": title, "outline": outline}
-
-# ───────── CLI ───────────────
-def main(inp_dir, out_dir):
-    inp, out = map(Path, (inp_dir, out_dir))
-    out.mkdir(parents=True, exist_ok=True)
-    for pdf in inp.glob("*.pdf"):
-        t0 = time.time()
-        res = predict_outline(pdf)
-        with open(out / f"{pdf.stem}.json", "w", encoding="utf-8") as f:
-            json.dump(res, f, indent=2, ensure_ascii=False)
-        print(f"{pdf.name}: {time.time()-t0:4.1f}s")
-
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit("usage: extract_outline_ml.py <input_dir> <output_dir>")
-    main(sys.argv[1], sys.argv[2])
+if __name__=="__main__":
+    if len(sys.argv)!=3:
+        sys.exit("usage: extract_outline_onnx.py <input_dir> <output_dir>")
+    main(sys.argv[1],sys.argv[2])

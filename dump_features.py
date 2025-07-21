@@ -1,93 +1,106 @@
 #!/usr/bin/env python3
-import csv
-import json
-import re
-import sys
+"""
+Rebuild train.csv with canonical text and full gold-label coverage
+usage: python make_train_csv.py <pdf_dir> <label_dir> <out_csv>
+"""
+import csv, json, re, sys, html, unicodedata
 from pathlib import Path
-from pdfminer.high_level import extract_pages
-from pdfminer.layout import LTChar, LTTextBoxHorizontal, LTTextLineHorizontal
+from statistics import median
+import fitz                         # PyMuPDF
 
-NUM_RE = re.compile(r"^\s*(\d+(\.\d+)*|[IVXLC]+\.)\s")
+HDR_RE          = re.compile(r"^\s*(\d+(\.\d+)*|[IVXLC]+\.)\s")
+CAPS_TH, RATIO  = 0.60, 1.20        # heading heuristics
 
-def normalize(text: str) -> str:
-    """Collapse whitespace, strip, lowercase for consistent matching."""
-    txt = re.sub(r"\s+", " ", text)
-    return txt.strip().lower()
+# ---------- text canonicalisation (identical for train & inference)
+def norm(txt: str) -> str:
+    txt = unicodedata.normalize("NFKC", html.unescape(txt))
+    return re.sub(r"\s+", " ", txt).strip()
 
-def iter_lines(pdf: Path):
-    for page_i, layout in enumerate(extract_pages(pdf), 1):
-        for el in layout:
-            if not isinstance(el, (LTTextBoxHorizontal, LTTextLineHorizontal)):
-                continue
-            lines = [el] if isinstance(el, LTTextLineHorizontal) else \
-                    [l for l in el if isinstance(l, LTTextLineHorizontal)]
-            for ln in lines:
-                chars = [c for c in ln if isinstance(c, LTChar)]
-                if not chars:
-                    continue
-                txt = ln.get_text().strip()
+def gold_map(label_json: Path) -> dict:
+    if not label_json.exists():
+        return {}
+    jd = json.load(label_json.open(encoding="utf-8"))
+    m  = {norm(jd["title"]): "TITLE"}
+    m.update({norm(h["text"]): h["level"] for h in jd["outline"]})
+    return m
+
+# ---------- line extraction + simple line-merge
+def pdf_rows(pdf: Path):
+    doc   = fitz.open(pdf)
+    sizes = [s["size"]
+             for p in doc
+             for b in p.get_text("dict")["blocks"]
+             for l in b.get("lines", [])
+             for s in l.get("spans", [])]
+    med   = median(sizes) if sizes else 1.0
+    raw   = []
+    for pg, page in enumerate(doc):
+        for blk in page.get_text("dict")["blocks"]:
+            for ln in blk.get("lines", []):
+                txt = "".join(s["text"] for s in ln.get("spans", [])).strip()
                 if len(txt) < 3:
                     continue
-                yield {
-                    "text": txt,
-                    "size": max(c.size for c in chars),
-                    "bold": int(any("Bold" in c.fontname or "Black" in c.fontname
-                                    for c in chars)),
-                    "indent": ln.x0,
-                    "caps": sum(map(str.isupper, txt)) / len(txt),
-                    "num": int(bool(NUM_RE.match(txt)))
-                }
+                sp   = ln["spans"][0]
+                raw.append({
+                    "page" : pg,
+                    "y"    : sp["bbox"][1],          # y-top
+                    "text" : norm(txt),
+                    "rel"  : sp["size"]/med,
+                    "bold" : int(sp["flags"] & 2 != 0),
+                    "caps" : sum(map(str.isupper, txt))/len(txt),
+                    "num"  : int(bool(HDR_RE.match(txt)))
+                })
+    doc.close()
 
-def build_gold_map(label_path: Path):
-    """Return {normalized_text: level} or empty dict if .json not found."""
-    if not label_path.exists():
-        return {}
-    jd = json.loads(label_path.read_text(encoding="utf-8"))
-    gold = {}
-    title = jd.get("title", "").strip()
-    if title:
-        gold[normalize(title)] = "TITLE"
-    for h in jd.get("outline", []):
-        text = h.get("text", "").strip()
-        if text:
-            gold[normalize(text)] = h.get("level", "")
-    return gold
+    # merge consecutive fragments on the same page & y-coord (±1 pt)
+    raw.sort(key=lambda r: (r["page"], r["y"]))
+    merged = []
+    for r in raw:
+        if merged and r["page"] == merged[-1]["page"] and abs(r["y"]-merged[-1]["y"]) < 1:
+            merged[-1]["text"] += " " + r["text"]
+        else:
+            merged.append(r)
+    return merged, med
 
-def main(pdf_dir, label_dir, out_csv):
-    pdf_dir, label_dir = Path(pdf_dir), Path(label_dir)
-    out_csv = Path(out_csv)
-
-    # Compute median font size per PDF
-    med = {}
-    for pdf in pdf_dir.glob("*.pdf"):
-        sizes = [l["size"] for l in iter_lines(pdf)]
-        if sizes:
-            med[pdf.name] = sorted(sizes)[len(sizes)//2]
-
-    # Write CSV
+# ---------- main ------------------------------------------------------
+def main(pdf_dir, lbl_dir, out_csv):
+    pdf_dir, lbl_dir, out_csv = map(Path, (pdf_dir, lbl_dir, out_csv))
+    unmatched = {}
     with out_csv.open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["text","rel_size","bold","indent","caps","numbered","label"])
+        w.writerow(["pdf","page","text","rel_size","bold","caps","numbered","label"])
 
         for pdf in pdf_dir.glob("*.pdf"):
-            gold = build_gold_map(label_dir / f"{pdf.stem}.json")
-            m = med.get(pdf.name, 1.0)
-            for ln in iter_lines(pdf):
-                key = normalize(ln["text"])
-                label = gold.get(key, "BODY")
-                w.writerow([
-                    ln["text"],
-                    ln["size"] / m,
-                    ln["bold"],
-                    ln["indent"] / 600,
-                    ln["caps"],
-                    ln["num"],
-                    label
-                ])
+            gmap = gold_map(lbl_dir / f"{pdf.stem}.json")
+            seen = set()
 
-    print(f"✅  Wrote {out_csv}")
+            rows, _ = pdf_rows(pdf)
+            for row in rows:
+                key = row["text"]
+                if key in gmap:
+                    row["label"] = gmap[key]
+                    seen.add(key)
+                else:
+                    keep = (row["rel"] >= RATIO or row["bold"] or
+                            row["caps"] > CAPS_TH or row["num"])
+                    if not keep:
+                        continue
+                    row["label"] = "BODY"
+                w.writerow([pdf.name, row["page"], row["text"],
+                            f"{row['rel']:.3f}", row["bold"],
+                            f"{row['caps']:.3f}", row["num"], row["label"]])
+
+            for miss in gmap.keys() - seen:
+                unmatched.setdefault(pdf.name, []).append(miss)
+
+    if unmatched:
+        print("⚠ Unmatched gold strings:")
+        for pdf, misses in unmatched.items():
+            for m in misses:
+                print(f"  {pdf}: '{m}'")
+    print("✅  train.csv rebuilt:", out_csv)
 
 if __name__ == "__main__":
     if len(sys.argv) != 4:
-        sys.exit("usage: dump_features.py <pdf_dir> <label_dir> <out_csv>")
+        sys.exit("usage: make_train_csv.py <pdf_dir> <label_dir> <out_csv>")
     main(*sys.argv[1:])
