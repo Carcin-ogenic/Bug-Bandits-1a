@@ -4,12 +4,14 @@ import json
 import pickle
 import argparse
 import numpy as np
-import fitz  # PyMuPDF
 import onnxruntime as ort
 from transformers import AutoTokenizer
 import re
 import statistics
 from collections import defaultdict
+from pathlib import Path
+from pdfminer.high_level import extract_pages
+from pdfminer.layout import LTChar, LTTextBoxHorizontal, LTTextLineHorizontal
 
 # Regex for numbering detection
 NUM_RE = re.compile(r"^\s*(\d+(\.\d+)*|[IVXLC]+\.)\s")
@@ -76,56 +78,64 @@ def fuzzy_group_headings(lines):
         i += len(run)
     return groups
 
-# ——— 2) Extract & group lines via PyMuPDF ———
+# ——— 2) Extract & group lines via pdfminer (same as training) ———
 def iter_lines(pdf_path):
-    doc = fitz.open(pdf_path)
-    for page_index, page in enumerate(doc, start=1):
-        spans = []
-        for b in page.get_text("dict")["blocks"]:
-            if b["type"] != 0:
+    all_lines = []
+    pdf_path = Path(pdf_path)
+    for page_i, layout in enumerate(extract_pages(pdf_path), 0):
+        line_objs = []
+        for el in layout:
+            if not isinstance(el, (LTTextBoxHorizontal, LTTextLineHorizontal)):
                 continue
-            for line in b["lines"]:
-                text = "".join(s["text"] for s in line["spans"]).strip()
-                if len(text) < 3:
+            lines = [el] if isinstance(el, LTTextLineHorizontal) else el._objs
+            for ln in lines:
+                if not isinstance(ln, LTTextLineHorizontal):
                     continue
-                sizes = [s["size"] for s in line["spans"]]
-                fonts = [s["font"] for s in line["spans"]]
-                x0s = [s["bbox"][0] for s in line["spans"]]
-                y0s = [s["bbox"][1] for s in line["spans"]]
-                spans.append({
-                    "text": text,
-                    "size": max(sizes),
-                    "bold": int(any("Bold" in f or "Black" in f for f in fonts)),
-                    "indent": min(x0s),
-                    "caps": sum(c.isupper() for c in text) / len(text),
-                    "num": int(bool(NUM_RE.match(text))),
-                    "line_len": len(text),
-                    "page": page_index,
-                    "y0": min(y0s),
-                    "x0": min(x0s),
-                    "x1": max(s["bbox"][2] for s in line["spans"]),
-                    "font_hash": hash(tuple(sorted(fonts))) & 0xFFFFFFFF,
+                chars = [c for c in ln if isinstance(c, LTChar)]
+                if not chars:
+                    continue
+                txt = ln.get_text().strip()
+                if len(txt) < 3:
+                    continue
+                fontnames = set(c.fontname for c in chars)
+                y0 = min(c.y0 for c in chars)
+                x0 = min(c.x0 for c in chars)
+                line_objs.append({
+                    "text": txt,
+                    "size": max(c.size for c in chars),
+                    "bold": int(any("Bold" in c.fontname or "Black" in c.fontname for c in chars)),
+                    "indent": x0,
+                    "caps": sum(map(str.isupper, txt)) / len(txt),
+                    "num": int(bool(NUM_RE.match(txt))),
+                    "line_len": len(txt),
+                    "page": page_i,
+                    "y0": y0,
+                    "x0": x0,
+                    "x1": max(c.x1 for c in chars),
+                    "font_hash": hash(tuple(sorted(fontnames))) & 0xFFFFFFFF,
                 })
-        # horizontal merge by y0
-        clusters = defaultdict(list)
-        for ln in spans:
-            key = round(ln["y0"] / 2)
-            clusters[key].append(ln)
-        merged = []
-        for grp in clusters.values():
-            grp = sorted(grp, key=lambda x: x["x0"])
-            full = " ".join(g["text"] for g in grp)
-            base = grp[0].copy()
+        # Horizontal merge (same as training)
+        clusters_by_y0 = defaultdict(list)
+        for line in line_objs:
+            key = round(line["y0"] / 2)
+            clusters_by_y0[key].append(line)
+        merged_lr_lines = []
+        for group in clusters_by_y0.values():
+            group = sorted(group, key=lambda x: x["x0"])
+            full_text = " ".join(part["text"].strip() for part in group)
+            base = group[0]
             base.update({
-                "text": full,
-                "line_len": len(full),
-                "caps": sum(c.isupper() for c in full) / (len(full) or 1),
-                "x1": grp[-1]["x1"],
+                "text": full_text,
+                "line_len": len(full_text),
+                "caps": sum(map(str.isupper, full_text)) / len(full_text) if len(full_text) else 0,
+                "x1": group[-1]["x1"]
             })
-            merged.append(base)
-        # apply fuzzy grouping
-        for ln in fuzzy_group_headings(merged):
-            yield ln
+            merged_lr_lines.append(base)
+        all_lines.extend(merged_lr_lines)
+    # Robust vertical merge (same as training)
+    merged_lines = fuzzy_group_headings(all_lines)
+    for ln in merged_lines:
+        yield ln
 
 # ——— 3) Embedding helper ———
 def load_text_embedder(model_dir):
@@ -164,27 +174,30 @@ def main(pdf_dir, output_dir, model_pickle):
         path = os.path.join(pdf_dir, fname)
         # 1) extract & group
         lines = list(iter_lines(path))
-        # 2) compute per‐PDF median size & rel_size
+        # 2) compute per‐PDF median size & rel_size (same as training)
         sizes = [ln["size"] for ln in lines]
-        m = statistics.median(sizes) if sizes else 1.0
-        for ln in lines:
-            ln["rel_size"] = ln["size"] / m
-
+        m = sorted(sizes)[len(sizes)//2] if sizes else 1.0
+        
         # 3) build feature arrays
         # 3a) text embeddings
         embs = np.vstack([embed_text(ln["text"]) for ln in lines])
-        # 3b) numeric feature normalizations (must match training!)
+        
+        # 3b) numeric feature normalizations (must match training exactly!)
+        X_num = []
         for ln in lines:
-            # rel_size was computed earlier
-            # indent feature was scaled by /600
-            ln["indent"] = ln["indent"] / 600
-            # y0_pos feature was scaled by y0/800
-            ln["y0_pos"] = ln["y0"] / 800
-        # 3c) assemble numeric features
-        X_num = np.vstack([
-            [ln[col] if col != "numbered" else ln["num"] for col in num_cols]
-            for ln in lines
-        ])
+            row = [
+                ln["size"] / m,  # rel_size
+                ln["bold"],      # bold
+                ln["indent"] / 600,  # indent (normalized same as training)
+                ln["caps"],      # caps
+                ln["num"],       # numbered
+                ln["line_len"],  # line_len
+                ln["page"],      # page
+                ln["y0"] / 800,  # y0_pos (normalized same as training)
+                ln["font_hash"]  # font_hash
+            ]
+            X_num.append(row)
+        X_num = np.array(X_num)
         X_num_scaled = scaler.transform(X_num)
         X = np.hstack([embs, X_num_scaled])
 

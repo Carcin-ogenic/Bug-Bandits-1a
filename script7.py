@@ -99,7 +99,7 @@ def fuzzy_group_headings(lines):
 
 def iter_lines(pdf: Path):
     all_lines = []
-    for page_i, layout in enumerate(extract_pages(pdf), 1):
+    for page_i, layout in enumerate(extract_pages(pdf), 0):
         line_objs = []
         for el in layout:
             if not isinstance(el, (LTTextBoxHorizontal, LTTextLineHorizontal)):
