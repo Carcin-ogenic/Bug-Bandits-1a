@@ -35,7 +35,11 @@ def embed(lines):
 # ✅ Load training data
 df = pd.read_csv("trainFinal.csv")
 Xtxt = embed(df.text.tolist())
-Xnum = df[["rel_size","bold","caps","numbered"]].to_numpy("float32")
+# Use all new features in the correct order
+Xnum = df[[
+    "rel_size", "bold", "indent", "caps", "numbered",
+    "line_len", "page", "y0_pos", "font_hash"
+]].to_numpy("float32")
 X    = np.hstack([Xtxt, Xnum])
 
 le = LabelEncoder(); y = le.fit_transform(df.label)

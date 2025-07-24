@@ -35,23 +35,6 @@ def heading_similarity(line1, line2, gap_med):
     # 🚫 New: Prevent merging across separate columns at similar y-levels
     if abs(line1['y0'] - line2['y0']) < 20 and abs(line1['x0'] - line2['x0']) > 100:
         return 0
-    
-    # 🚫 Prevent merging if line1 is very long (likely a paragraph)
-    if line1['line_len'] > 100:
-        return 0
-    
-    # 🚫 Prevent merging if line1 ends with sentence-ending punctuation
-    if re.search(r'[.!?]$', line1["text"].strip()):
-        return 0
-    
-    # 🚫 Prevent merging if there's a significant size difference (heading vs body text)
-    size_diff = abs(line1['size'] - line2['size'])
-    if size_diff > 2.5:
-        return 0
-    
-    # 🚫 Prevent merging if line2 starts with a number/bullet (likely new item)
-    if re.match(r'^\s*(\d+\.|\d+\)|\•|\-)', line2["text"]):
-        return 0
 
     vert_gap = abs(line1['y0'] - line2['y0'])
     indent_sim = abs(line1['indent'] - line2['indent'])
@@ -59,16 +42,13 @@ def heading_similarity(line1, line2, gap_med):
     font_sim = (line1['font_hash'] == line2['font_hash'])
     short_lines = max(line1['line_len'], line2['line_len']) < 60
     caps_sim = min(line1['caps'], line2['caps']) > 0.15
-    
-    # 🎯 Stricter vertical gap requirement
-    vert_gap_ok = 0 < vert_gap < gap_med * 0.8  # Tightened from 1.25 to 0.8
 
     score = 0
-    if vert_gap_ok:
-        score += 2  # More weight on vertical proximity
-    if indent_sim < 50:  # Tightened from 150 to 50
+    if 0 < vert_gap < gap_med * 1.25:  # ⬅️ tightened vertical sensitivity
         score += 1
-    if size_sim < 1.2:  # Tightened from 1.7 to 1.2
+    if indent_sim < 150:
+        score += 1
+    if size_sim < 1.7:
         score += 1
     if font_sim:
         score += 1
@@ -97,8 +77,7 @@ def fuzzy_group_headings(lines):
             if nxt['page'] != curr['page']:
                 break
             sim = heading_similarity(curr, nxt, gap_med)
-            # 🎯 Increased threshold for more conservative merging
-            if sim >= 5:  # Changed from 4 to 5 for stricter merging
+            if sim >= 4:  # 🧠 conservative merge
                 run.append(nxt)
                 used.add(j)
                 curr = nxt
@@ -117,15 +96,11 @@ def fuzzy_group_headings(lines):
             # Final normalization to ensure consistent spacing
             merged_text = re.sub(r'\s+', ' ', merged_text).strip()
             
-            # 🎯 Additional check: if merged text is too long, don't merge
-            if len(merged_text) > 150:  # Prevent very long merged lines
-                groups.extend(run)  # Add individual lines instead of merging
-            else:
-                new_y0 = min(r["y0"] for r in run)
-                merged = {**run[0], "text": merged_text, "y0": new_y0,
-                          "line_len": len(merged_text),
-                          "caps": sum(map(str.isupper, merged_text)) / (len(merged_text) or 1)}
-                groups.append(merged)
+            new_y0 = min(r["y0"] for r in run)
+            merged = {**run[0], "text": merged_text, "y0": new_y0,
+                      "line_len": len(merged_text),
+                      "caps": sum(map(str.isupper, merged_text)) / (len(merged_text) or 1)}
+            groups.append(merged)
         else:
             groups.append(run[0])
         i += len(run)

@@ -3,11 +3,6 @@
   "outline": [
     {
       "level": "H1",
-      "text": "Foundation Level Extensions",
-      "page": 0
-    },
-    {
-      "level": "H1",
       "text": "Revision History",
       "page": 2
     },
@@ -25,11 +20,6 @@
       "level": "H1",
       "text": "1. Introduction to the Foundation Level Extensions",
       "page": 5
-    },
-    {
-      "level": "H1",
-      "text": "2. Introduction to Foundation Level Agile Tester Extension",
-      "page": 6
     },
     {
       "level": "H2",
@@ -60,11 +50,6 @@
       "level": "H2",
       "text": "2.6 Keeping It Current",
       "page": 8
-    },
-    {
-      "level": "H1",
-      "text": "3. Overview of the Foundation Level Extension – Agile Tester",
-      "page": 9
     },
     {
       "level": "H2",

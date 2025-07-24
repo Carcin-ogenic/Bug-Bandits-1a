@@ -2,13 +2,8 @@
   "title": "",
   "outline": [
     {
-      "level": "H2",
-      "text": "o Present a Proposal for Developing",
-      "page": 0
-    },
-    {
       "level": "H1",
-      "text": "Digital Library",
+      "text": "Ontario’s Libraries",
       "page": 0
     },
     {
@@ -17,13 +12,8 @@
       "page": 1
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Summary",
-      "page": 1
-    },
-    {
-      "level": "H3",
-      "text": "Timeline:",
       "page": 1
     },
     {
@@ -62,7 +52,7 @@
       "page": 4
     },
     {
-      "level": "H3",
+      "level": "H1",
       "text": "Guidance and Advice:",
       "page": 4
     },
@@ -82,8 +72,28 @@
       "page": 4
     },
     {
-      "level": "H2",
-      "text": "The Business Plan to be Developed",
+      "level": "H3",
+      "text": "What could the ODL really mean?",
+      "page": 4
+    },
+    {
+      "level": "H4",
+      "text": "For each Ontario citizen it could mean:",
+      "page": 4
+    },
+    {
+      "level": "H4",
+      "text": "For each Ontario student it could mean:",
+      "page": 4
+    },
+    {
+      "level": "H4",
+      "text": "For each Ontario library it could mean:",
+      "page": 5
+    },
+    {
+      "level": "H4",
+      "text": "For the Ontario government it could mean:",
       "page": 5
     },
     {
@@ -107,9 +117,74 @@
       "page": 8
     },
     {
+      "level": "H3",
+      "text": "Phase I: Business Planning",
+      "page": 8
+    },
+    {
+      "level": "H2",
+      "text": "Result: The ODL business plan",
+      "page": 8
+    },
+    {
+      "level": "H3",
+      "text": "Phase II: Implementing and Transitioning",
+      "page": 8
+    },
+    {
+      "level": "H3",
+      "text": "Phase III: Operating and Growing the ODL",
+      "page": 8
+    },
+    {
       "level": "H2",
       "text": "Appendix B: ODL Steering Committee Terms of Reference",
       "page": 10
+    },
+    {
+      "level": "H3",
+      "text": "1. Preamble",
+      "page": 10
+    },
+    {
+      "level": "H3",
+      "text": "2. Terms of Reference",
+      "page": 10
+    },
+    {
+      "level": "H3",
+      "text": "3. Membership",
+      "page": 10
+    },
+    {
+      "level": "H3",
+      "text": "4. Appointment Criteria and Process",
+      "page": 11
+    },
+    {
+      "level": "H3",
+      "text": "5. Term",
+      "page": 11
+    },
+    {
+      "level": "H3",
+      "text": "6. Chair",
+      "page": 11
+    },
+    {
+      "level": "H3",
+      "text": "7. Meetings",
+      "page": 11
+    },
+    {
+      "level": "H3",
+      "text": "8. Lines of Accountability and Communication",
+      "page": 11
+    },
+    {
+      "level": "H3",
+      "text": "9. Financial and Administrative Policies",
+      "page": 12
     },
     {
       "level": "H2",

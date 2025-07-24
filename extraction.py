@@ -10,8 +10,7 @@ import re
 import statistics
 from collections import defaultdict
 from pathlib import Path
-from pdfminer.high_level import extract_pages
-from pdfminer.layout import LTChar, LTTextBoxHorizontal, LTTextLineHorizontal
+import fitz  # PyMuPDF
 
 # Regex for numbering detection
 NUM_RE = re.compile(r"^\s*(\d+(\.\d+)*|[IVXLC]+\.)\s")
@@ -26,23 +25,56 @@ def compute_gap_stats(lines):
     return statistics.median(y_gaps) if y_gaps else 14
 
 def heading_similarity(a, b, gap_med):
-    if b["indent"] - a["indent"] > 30: return 0
-    if re.match(r"^[a-z]", b["text"]) or re.search(r"[.:]$", b["text"]): return 0
-    if abs(a["y0"] - b["y0"]) < 20 and abs(a["x0"] - b["x0"]) > 100: return 0
+    # 🚫 Hard guards to avoid paragraph merging
+    if b["indent"] - a["indent"] > 30:
+        return 0
+    if re.match(r"^[a-z]", b["text"]) or re.search(r"[.:]$", b["text"]):
+        return 0
 
-    vg, ig, sz = abs(a["y0"] - b["y0"]), abs(a["indent"] - b["indent"]), abs(a["size"] - b["size"])
-    font_sim = a["font_hash"] == b["font_hash"]
-    short = max(a["line_len"], b["line_len"]) < 60
-    caps = min(a["caps"], b["caps"]) > 0.15
+    # 🚫 New: Prevent merging across separate columns at similar y-levels
+    if abs(a["y0"] - b["y0"]) < 20 and abs(a["x0"] - b["x0"]) > 100:
+        return 0
+    
+    # 🚫 Prevent merging if line1 is very long (likely a paragraph)
+    if a["line_len"] > 100:
+        return 0
+    
+    # 🚫 Prevent merging if line1 ends with sentence-ending punctuation
+    if re.search(r'[.!?]$', a["text"].strip()):
+        return 0
+    
+    # 🚫 Prevent merging if there's a significant size difference (heading vs body text)
+    size_diff = abs(a["size"] - b["size"])
+    if size_diff > 2.5:
+        return 0
+    
+    # 🚫 Prevent merging if line2 starts with a number/bullet (likely new item)
+    if re.match(r'^\s*(\d+\.|\d+\)|\•|\-)', b["text"]):
+        return 0
 
-    score = (
-        (0 < vg < gap_med * 1.25) +
-        (ig < 150) +
-        (sz < 1.7) +
-        font_sim +
-        short +
-        caps
-    )
+    vert_gap = abs(a["y0"] - b["y0"])
+    indent_sim = abs(a["indent"] - b["indent"])
+    size_sim = abs(a["size"] - b["size"])
+    font_sim = (a["font_hash"] == b["font_hash"])
+    short_lines = max(a["line_len"], b["line_len"]) < 60
+    caps_sim = min(a["caps"], b["caps"]) > 0.15
+    
+    # 🎯 Stricter vertical gap requirement
+    vert_gap_ok = 0 < vert_gap < gap_med * 0.8  # Tightened from 1.25 to 0.8
+
+    score = 0
+    if vert_gap_ok:
+        score += 2  # More weight on vertical proximity
+    if indent_sim < 50:  # Tightened from 150 to 50
+        score += 1
+    if size_sim < 1.2:  # Tightened from 1.7 to 1.2
+        score += 1
+    if font_sim:
+        score += 1
+    if short_lines:
+        score += 1
+    if caps_sim:
+        score += 1
     return score
 
 def fuzzy_group_headings(lines):
@@ -55,7 +87,7 @@ def fuzzy_group_headings(lines):
             continue
         run, curr, j = [lines[i]], lines[i], i+1
         while j < n and lines[j]["page"] == curr["page"]:
-            if heading_similarity(curr, lines[j], gap_med) >= 4:
+            if heading_similarity(curr, lines[j], gap_med) >= 5:  # Changed from 4 to 5 for stricter merging
                 run.append(lines[j])
                 used.add(j)
                 curr = lines[j]
@@ -63,58 +95,117 @@ def fuzzy_group_headings(lines):
             else:
                 break
         if len(run) > 1:
-            merged_text = " ".join(r["text"] for r in run)
-            groups.append({
-                **run[0],
-                "text": merged_text,
-                "y0": min(r["y0"] for r in run),
-                "line_len": len(merged_text),
-                "caps": sum(c.isupper() for r in run for c in r["text"]) / (
-                    sum(len(r["text"]) for r in run) or 1
-                )
-            })
+            # Improved text merging for multi-line headings
+            texts = []
+            for r in run:
+                clean_text = r["text"].strip()
+                if clean_text:
+                    texts.append(clean_text)
+            
+            merged_text = " ".join(texts)
+            # Final normalization to ensure consistent spacing
+            merged_text = re.sub(r'\s+', ' ', merged_text).strip()
+            
+            # 🎯 Additional check: if merged text is too long, don't merge
+            if len(merged_text) > 150:  # Prevent very long merged lines
+                groups.extend(run)  # Add individual lines instead of merging
+            else:
+                groups.append({
+                    **run[0],
+                    "text": merged_text,
+                    "y0": min(r["y0"] for r in run),
+                    "line_len": len(merged_text),
+                    "caps": sum(c.isupper() for c in merged_text) / (len(merged_text) or 1)
+                })
         else:
             groups.append(run[0])
         i += len(run)
     return groups
 
-# ——— 2) Extract & group lines via pdfminer (same as training) ———
+# ——— 2) Extract & group lines via PyMuPDF (same logic as training) ———
 def iter_lines(pdf_path):
     all_lines = []
     pdf_path = Path(pdf_path)
-    for page_i, layout in enumerate(extract_pages(pdf_path), 0):
+    doc = fitz.open(pdf_path)
+    
+    for page_i in range(len(doc)):
+        page = doc[page_i]
         line_objs = []
-        for el in layout:
-            if not isinstance(el, (LTTextBoxHorizontal, LTTextLineHorizontal)):
+        
+        # Get text blocks with detailed formatting information
+        blocks = page.get_text("dict")
+        
+        for block in blocks["blocks"]:
+            if "lines" not in block:  # Skip image blocks
                 continue
-            lines = [el] if isinstance(el, LTTextLineHorizontal) else el._objs
-            for ln in lines:
-                if not isinstance(ln, LTTextLineHorizontal):
+                
+            for line in block["lines"]:
+                if not line["spans"]:  # Skip empty lines
                     continue
-                chars = [c for c in ln if isinstance(c, LTChar)]
-                if not chars:
+                
+                # Collect all characters/spans in this line
+                all_chars = []
+                full_text = ""
+                
+                for span in line["spans"]:
+                    text = span["text"]
+                    if not text.strip():
+                        continue
+                    
+                    # Preserve spacing but normalize multiple spaces
+                    full_text += text
+                    
+                    # Create character-like objects for compatibility
+                    char_info = {
+                        "fontname": span["font"],
+                        "size": span["size"],
+                        "x0": span["bbox"][0],
+                        "y0": span["bbox"][1],
+                        "x1": span["bbox"][2],
+                        "y1": span["bbox"][3],
+                        "text": text
+                    }
+                    all_chars.append(char_info)
+                
+                # Normalize text spacing but preserve structure
+                full_text = re.sub(r'\s+', ' ', full_text.strip())
+                if len(full_text) < 3:
                     continue
-                txt = ln.get_text().strip()
-                if len(txt) < 3:
+                
+                if not all_chars:
                     continue
-                fontnames = set(c.fontname for c in chars)
-                y0 = min(c.y0 for c in chars)
-                x0 = min(c.x0 for c in chars)
+                
+                # Extract font information
+                fontnames = set(char["fontname"] for char in all_chars)
+                
+                # Calculate positions (PyMuPDF uses different coordinate system)
+                # Convert to pdfminer-like coordinates for consistency
+                page_height = page.rect.height
+                y0 = page_height - max(char["y1"] for char in all_chars)  # Flip Y coordinate
+                x0 = min(char["x0"] for char in all_chars)
+                x1 = max(char["x1"] for char in all_chars)
+                
+                # Detect bold fonts (similar logic to pdfminer version)
+                bold = int(any("Bold" in char["fontname"] or "Black" in char["fontname"] or 
+                             "Heavy" in char["fontname"] or "Demi" in char["fontname"] 
+                             for char in all_chars))
+                
                 line_objs.append({
-                    "text": txt,
-                    "size": max(c.size for c in chars),
-                    "bold": int(any("Bold" in c.fontname or "Black" in c.fontname for c in chars)),
+                    "text": full_text,
+                    "size": max(char["size"] for char in all_chars),
+                    "bold": bold,
                     "indent": x0,
-                    "caps": sum(map(str.isupper, txt)) / len(txt),
-                    "num": int(bool(NUM_RE.match(txt))),
-                    "line_len": len(txt),
+                    "caps": sum(map(str.isupper, full_text)) / len(full_text),
+                    "num": int(bool(NUM_RE.match(full_text))),
+                    "line_len": len(full_text),
                     "page": page_i,
                     "y0": y0,
                     "x0": x0,
-                    "x1": max(c.x1 for c in chars),
+                    "x1": x1,
                     "font_hash": hash(tuple(sorted(fontnames))) & 0xFFFFFFFF,
                 })
-        # Horizontal merge (same as training)
+        
+        # Horizontal merge (same logic as original)
         clusters_by_y0 = defaultdict(list)
         for line in line_objs:
             key = round(line["y0"] / 2)
@@ -122,7 +213,17 @@ def iter_lines(pdf_path):
         merged_lr_lines = []
         for group in clusters_by_y0.values():
             group = sorted(group, key=lambda x: x["x0"])
-            full_text = " ".join(part["text"].strip() for part in group)
+            # Improved text merging with proper spacing
+            texts = []
+            for part in group:
+                clean_text = part["text"].strip()
+                if clean_text:
+                    texts.append(clean_text)
+            
+            full_text = " ".join(texts)
+            # Final normalization to ensure consistent spacing
+            full_text = re.sub(r'\s+', ' ', full_text).strip()
+            
             base = group[0]
             base.update({
                 "text": full_text,
@@ -132,7 +233,10 @@ def iter_lines(pdf_path):
             })
             merged_lr_lines.append(base)
         all_lines.extend(merged_lr_lines)
-    # Robust vertical merge (same as training)
+    
+    doc.close()
+    
+    # Robust vertical merge (same logic as original)
     merged_lines = fuzzy_group_headings(all_lines)
     for ln in merged_lines:
         yield ln
