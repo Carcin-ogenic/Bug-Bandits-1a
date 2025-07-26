@@ -7,7 +7,7 @@
       "page": 0
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Hot and Sour Soup",
       "page": 0
     },
@@ -152,7 +152,7 @@
       "page": 12
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Nuoc Cham",
       "page": 12
     },
@@ -172,7 +172,7 @@
       "page": 13
     },
     {
-      "level": "H2",
+      "level": "H3",
       "text": "Pad See Ew",
       "page": 14
     },

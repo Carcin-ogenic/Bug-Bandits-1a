@@ -2,7 +2,7 @@
   "title": "",
   "outline": [
     {
-      "level": "H1",
+      "level": "H2",
       "text": "What’s the best way to create a PDF?",
       "page": 1
     },
@@ -57,7 +57,7 @@
       "page": 11
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Using Create PDF cloud service for PDF",
       "page": 12
     },
@@ -67,7 +67,7 @@
       "page": 12
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Convert a file to PDF using PDFMaker",
       "page": 13
     },
@@ -124,6 +124,11 @@
     {
       "level": "H2",
       "text": "Security tab of the Adobe PDFMaker preferences",
+      "page": 20
+    },
+    {
+      "level": "H3",
+      "text": "Printing Allowed",
       "page": 20
     },
     {
@@ -187,7 +192,12 @@
       "page": 27
     },
     {
-      "level": "H2",
+      "level": "H3",
+      "text": "Message",
+      "page": 27
+    },
+    {
+      "level": "H1",
       "text": "Convert Visio files to PDF (Acrobat Pro)",
       "page": 28
     },

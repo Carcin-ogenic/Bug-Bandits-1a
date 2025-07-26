@@ -2,7 +2,7 @@
   "title": "",
   "outline": [
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Edit text in a PDF",
       "page": 1
     },
@@ -18,8 +18,18 @@
     },
     {
       "level": "H2",
+      "text": "Format text",
+      "page": 4
+    },
+    {
+      "level": "H2",
       "text": "Add new text",
       "page": 5
+    },
+    {
+      "level": "H2",
+      "text": "Move, rotate, or resize a text box",
+      "page": 6
     },
     {
       "level": "H2",
@@ -32,7 +42,7 @@
       "page": 8
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Change font",
       "page": 10
     },
@@ -77,7 +87,12 @@
       "page": 13
     },
     {
-      "level": "H1",
+      "level": "H3",
+      "text": "Note:",
+      "page": 13
+    },
+    {
+      "level": "H2",
       "text": "Delete images from a PDF",
       "page": 14
     },

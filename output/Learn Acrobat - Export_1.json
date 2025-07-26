@@ -7,7 +7,7 @@
       "page": 1
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Save a PDF",
       "page": 1
     },
@@ -27,7 +27,7 @@
       "page": 4
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Recover lost changes after an unexpected shutdown",
       "page": 4
     },
@@ -42,18 +42,18 @@
       "page": 5
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Convert PDF to PPTX",
       "page": 6
     },
     {
       "level": "H2",
-      "text": "File format opƟons for PDF export in Acrobat",
+      "text": "Adobe PDF options",
       "page": 7
     },
     {
       "level": "H2",
-      "text": "Adobe PDF options",
+      "text": "Image conversion settings",
       "page": 7
     },
     {
@@ -69,6 +69,11 @@
     {
       "level": "H3",
       "text": "RGB/CMYK/Grayscale",
+      "page": 8
+    },
+    {
+      "level": "H2",
+      "text": "Conversion",
       "page": 8
     },
     {
@@ -89,6 +94,11 @@
     {
       "level": "H3",
       "text": "RGB/Grayscale",
+      "page": 9
+    },
+    {
+      "level": "H2",
+      "text": "Conversion",
       "page": 9
     },
     {
@@ -117,27 +127,27 @@
       "page": 10
     },
     {
+      "level": "H2",
+      "text": "Conversion",
+      "page": 10
+    },
+    {
       "level": "H3",
       "text": "Colorspace/Resolution",
       "page": 10
     },
     {
-      "level": "H2",
-      "text": "Layout Settings",
-      "page": 11
-    },
-    {
-      "level": "H2",
-      "text": "Image Settings",
-      "page": 11
-    },
-    {
-      "level": "H2",
+      "level": "H1",
       "text": "Convert PDF to RTF",
       "page": 12
     },
     {
-      "level": "H2",
+      "level": "H3",
+      "text": "Image Settings",
+      "page": 12
+    },
+    {
+      "level": "H1",
       "text": "Convert PDF to HTML Web Page",
       "page": 14
     },
@@ -213,16 +223,11 @@
     },
     {
       "level": "H2",
-      "text": "Page Range",
-      "page": 20
-    },
-    {
-      "level": "H2",
       "text": "Convert PDF to Text and XML 1.0",
       "page": 21
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Convert PDF to XML 1.0",
       "page": 21
     },
@@ -282,7 +287,12 @@
       "page": 22
     },
     {
-      "level": "H1",
+      "level": "H2",
+      "text": "Convert PDF to JPEG or JPEG 2000",
+      "page": 23
+    },
+    {
+      "level": "H2",
       "text": "Convert PDF to TIFF",
       "page": 23
     },
@@ -292,7 +302,7 @@
       "page": 24
     },
     {
-      "level": "H1",
+      "level": "H3",
       "text": "Overview",
       "page": 25
     },
@@ -302,7 +312,7 @@
       "page": 25
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Select and copy text and images",
       "page": 27
     },

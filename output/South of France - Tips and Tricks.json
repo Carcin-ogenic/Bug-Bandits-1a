@@ -7,14 +7,9 @@
       "page": 0
     },
     {
-      "level": "H1",
-      "text": "Packing for All Seasons",
-      "page": 2
-    },
-    {
-      "level": "H1",
-      "text": "Spring (March to May)",
-      "page": 2
+      "level": "H2",
+      "text": "General Packing Tips and Tricks",
+      "page": 1
     },
     {
       "level": "H1",
@@ -22,12 +17,12 @@
       "page": 2
     },
     {
-      "level": "H3",
+      "level": "H2",
       "text": "Packing for Adults",
       "page": 3
     },
     {
-      "level": "H1",
+      "level": "H3",
       "text": "Clothing",
       "page": 3
     },
@@ -42,7 +37,7 @@
       "page": 5
     },
     {
-      "level": "H1",
+      "level": "H3",
       "text": "Clothing",
       "page": 5
     },
@@ -52,12 +47,12 @@
       "page": 5
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Safety and Comfort",
       "page": 5
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Special Considerations",
       "page": 6
     },

@@ -7,12 +7,12 @@
       "page": 0
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "document",
       "page": 0
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Annotations and drawing markup tools",
       "page": 1
     },
@@ -27,8 +27,28 @@
       "page": 1
     },
     {
-      "level": "H1",
+      "level": "H2",
+      "text": "Select an annotation or drawing markup tool",
+      "page": 2
+    },
+    {
+      "level": "H2",
+      "text": "Keep an annotation tool selected",
+      "page": 3
+    },
+    {
+      "level": "H2",
       "text": "Add a comment",
+      "page": 4
+    },
+    {
+      "level": "H2",
+      "text": "Steps to add a comment",
+      "page": 4
+    },
+    {
+      "level": "H2",
+      "text": "Edit a comment",
       "page": 4
     },
     {
@@ -62,8 +82,18 @@
       "page": 8
     },
     {
+      "level": "H2",
+      "text": "Add a line",
+      "page": 9
+    },
+    {
       "level": "H1",
       "text": "Group and ungroup markups",
+      "page": 10
+    },
+    {
+      "level": "H2",
+      "text": "Group markups",
       "page": 10
     },
     {
@@ -92,13 +122,28 @@
       "page": 14
     },
     {
-      "level": "H1",
-      "text": "Font, Font Size",
+      "level": "H2",
+      "text": "Viewing comments",
       "page": 14
     },
     {
       "level": "H3",
+      "text": "Font, Font Size",
+      "page": 14
+    },
+    {
+      "level": "H2",
       "text": "Pop-up Opacity",
+      "page": 14
+    },
+    {
+      "level": "H2",
+      "text": "Enable Text Indicators And Tooltips",
+      "page": 14
+    },
+    {
+      "level": "H2",
+      "text": "Print Notes And Pop-ups",
       "page": 14
     }
   ]

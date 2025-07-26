@@ -58,6 +58,11 @@
     },
     {
       "level": "H2",
+      "text": "Hidden Gems",
+      "page": 4
+    },
+    {
+      "level": "H2",
       "text": "Cultural Highlights",
       "page": 4
     },
@@ -153,6 +158,11 @@
     },
     {
       "level": "H2",
+      "text": "Student Life",
+      "page": 9
+    },
+    {
+      "level": "H2",
       "text": "Cultural Highlights",
       "page": 9
     },
@@ -214,6 +224,11 @@
     {
       "level": "H2",
       "text": "History",
+      "page": 12
+    },
+    {
+      "level": "H2",
+      "text": "medieval architecture in Europe.",
       "page": 12
     },
     {

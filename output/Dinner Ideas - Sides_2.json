@@ -12,7 +12,7 @@
       "page": 0
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Coleslaw",
       "page": 0
     },
@@ -24,6 +24,11 @@
     {
       "level": "H1",
       "text": "Coxinha",
+      "page": 1
+    },
+    {
+      "level": "H1",
+      "text": "Croque Monsieur",
       "page": 1
     },
     {
@@ -42,7 +47,7 @@
       "page": 3
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Dolmas",
       "page": 3
     },
@@ -77,7 +82,7 @@
       "page": 5
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Escalivada",
       "page": 6
     },
@@ -107,7 +112,7 @@
       "page": 8
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Festival",
       "page": 8
     },
@@ -137,7 +142,7 @@
       "page": 10
     },
     {
-      "level": "H2",
+      "level": "H1",
       "text": "Gamja Jorim",
       "page": 10
     },

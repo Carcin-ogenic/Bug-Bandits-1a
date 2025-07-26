@@ -18,18 +18,23 @@
     },
     {
       "level": "H2",
+      "text": "User Guidelines",
+      "page": 2
+    },
+    {
+      "level": "H2",
       "text": "Attributions",
       "page": 2
+    },
+    {
+      "level": "H2",
+      "text": "Feedback",
+      "page": 3
     },
     {
       "level": "H3",
       "text": "Content usage and handling practices",
       "page": 3
-    },
-    {
-      "level": "H2",
-      "text": "providing feedback?",
-      "page": 4
     },
     {
       "level": "H3",
@@ -53,11 +58,16 @@
     },
     {
       "level": "H3",
+      "text": "App settings",
+      "page": 8
+    },
+    {
+      "level": "H3",
       "text": "Supported OS",
       "page": 8
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Get AI-generated answers",
       "page": 9
     },
@@ -65,6 +75,11 @@
       "level": "H2",
       "text": "AI Assistant",
       "page": 9
+    },
+    {
+      "level": "H2",
+      "text": "Accessing chat history in Acrobat",
+      "page": 11
     },
     {
       "level": "H2",
@@ -88,8 +103,13 @@
     },
     {
       "level": "H2",
-      "text": "summary tool.",
-      "page": 16
+      "text": "Manually open meeting transcripts in Acrobat",
+      "page": 15
+    },
+    {
+      "level": "H2",
+      "text": "Use generative AI features in Acrobat Reader",
+      "page": 17
     },
     {
       "level": "H2",
@@ -97,14 +117,29 @@
       "page": 19
     },
     {
-      "level": "H1",
+      "level": "H2",
+      "text": "Report inappropriate content",
+      "page": 20
+    },
+    {
+      "level": "H2",
       "text": "Rate your experience with the generative AI",
       "page": 22
     },
     {
-      "level": "H1",
+      "level": "H2",
       "text": "features",
       "page": 22
+    },
+    {
+      "level": "H2",
+      "text": "Turn off generative AI features in Acrobat or Acrobat Reader",
+      "page": 22
+    },
+    {
+      "level": "H2",
+      "text": "Turn off generative AI features in Acrobat on the web",
+      "page": 23
     },
     {
       "level": "H1",

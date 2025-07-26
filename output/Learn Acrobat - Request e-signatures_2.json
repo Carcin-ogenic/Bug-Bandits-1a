@@ -3,11 +3,26 @@
   "outline": [
     {
       "level": "H2",
+      "text": "Why validate a digital signature?",
+      "page": 0
+    },
+    {
+      "level": "H2",
+      "text": "Set preferences for validating digital signatures",
+      "page": 1
+    },
+    {
+      "level": "H2",
       "text": "Set the trust level of a certificate",
       "page": 3
     },
     {
-      "level": "H1",
+      "level": "H2",
+      "text": "Sign in preview mode for document integrity",
+      "page": 5
+    },
+    {
+      "level": "H2",
       "text": "Certify a PDF",
       "page": 5
     },
@@ -17,14 +32,34 @@
       "page": 5
     },
     {
+      "level": "H2",
+      "text": "Validate a digital signature",
+      "page": 5
+    },
+    {
       "level": "H1",
       "text": "Validate all digital signatures",
       "page": 7
     },
     {
-      "level": "H1",
+      "level": "H2",
+      "text": "View previous versions of a digitally signed document",
+      "page": 7
+    },
+    {
+      "level": "H2",
+      "text": "Compare versions of a signed document",
+      "page": 7
+    },
+    {
+      "level": "H2",
       "text": "Trust a signer’s certificate",
       "page": 7
+    },
+    {
+      "level": "H2",
+      "text": "Sign component PDFs and PDF Portfolios",
+      "page": 8
     },
     {
       "level": "H2",
@@ -33,8 +68,23 @@
     },
     {
       "level": "H2",
+      "text": "View signed and certified PDF Portfolios",
+      "page": 8
+    },
+    {
+      "level": "H2",
       "text": "Establish long-term signature validation",
       "page": 9
+    },
+    {
+      "level": "H2",
+      "text": "Add verification information at signing",
+      "page": 10
+    },
+    {
+      "level": "H2",
+      "text": "Add verification information after signing",
+      "page": 10
     }
   ]
 }

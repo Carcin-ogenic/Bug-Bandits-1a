@@ -2,8 +2,8 @@
   "title": "",
   "outline": [
     {
-      "level": "H1",
-      "text": "others",
+      "level": "H2",
+      "text": "Send a document to get signatures from",
       "page": 1
     },
     {
@@ -15,6 +15,11 @@
       "level": "H2",
       "text": "Steps to send in bulk",
       "page": 8
+    },
+    {
+      "level": "H2",
+      "text": "Manage your bulk sends",
+      "page": 16
     },
     {
       "level": "H2",
@@ -42,7 +47,12 @@
       "page": 20
     },
     {
-      "level": "H1",
+      "level": "H2",
+      "text": "based signatures?",
+      "page": 20
+    },
+    {
+      "level": "H2",
       "text": "Resources",
       "page": 20
     },
@@ -83,8 +93,23 @@
     },
     {
       "level": "H2",
+      "text": "Create the appearance of a certificate-based signature",
+      "page": 24
+    },
+    {
+      "level": "H3",
+      "text": "Imported Graphic",
+      "page": 25
+    },
+    {
+      "level": "H2",
       "text": "Set up a roaming ID account",
       "page": 25
+    },
+    {
+      "level": "H2",
+      "text": "PKCS#12 modules and tokens",
+      "page": 26
     },
     {
       "level": "H2",
@@ -100,6 +125,11 @@
       "level": "H2",
       "text": "Export directory server settings (Windows only)",
       "page": 27
+    },
+    {
+      "level": "H2",
+      "text": "Add a timestamp to certificate-based signatures",
+      "page": 28
     },
     {
       "level": "H2",

@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 import pickle
 
 # 1) Load training CSV
-CSV_PATH = "trainFinal.csv"
+CSV_PATH = "train.csv"
 df = pd.read_csv(CSV_PATH)
 
 # 2) Load ONNX MiniLM model & tokenizer
@@ -79,7 +79,7 @@ clf = LogisticRegression(
 clf.fit(X, y)
 
 # 7) Persist classifier + scaler + metadata
-OUT_PATH = "./models/classifierColl2.pkl"
+OUT_PATH = "./models/classifier.pkl"
 with open(OUT_PATH, "wb") as fout:
     pickle.dump({
         "scaler": scaler,

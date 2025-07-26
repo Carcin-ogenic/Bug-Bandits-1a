@@ -2,7 +2,7 @@
   "title": "",
   "outline": [
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Fill and Sign PDF Forms",
       "page": 0
     },
@@ -27,13 +27,13 @@
       "page": 7
     },
     {
-      "level": "H1",
-      "text": "Auto-Complete forms (interactive forms",
-      "page": 9
+      "level": "H2",
+      "text": "Fill in interactive forms",
+      "page": 7
     },
     {
-      "level": "H1",
-      "text": "only)",
+      "level": "H2",
+      "text": "Auto-Complete forms (interactive forms",
       "page": 9
     },
     {
@@ -52,7 +52,12 @@
       "page": 11
     },
     {
-      "level": "H1",
+      "level": "H2",
+      "text": "Interactive form",
+      "page": 11
+    },
+    {
+      "level": "H2",
       "text": "Save forms",
       "page": 12
     },

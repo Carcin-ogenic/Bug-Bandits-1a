@@ -330,7 +330,7 @@ if __name__ == "__main__":
     parser.add_argument("output_dir", help="Where to write JSON outlines")
     parser.add_argument(
         "--model_pickle",
-        default="./models/classifierColl2.pkl",
+        default="./models/classifier.pkl",
         help="Path to trained classifier bundle"
     )
     args = parser.parse_args()
