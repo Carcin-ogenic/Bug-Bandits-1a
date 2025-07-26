@@ -13,7 +13,7 @@ def normalize_text(text):
 
 def analyze_predictions():
     gt_dir = "labels"
-    pred_dir = "out6"  # Use corrected predictions
+    pred_dir = "output"  # Use corrected predictions
     
     issues = defaultdict(list)
     total_stats = Counter()

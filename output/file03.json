@@ -8,18 +8,13 @@
     },
     {
       "level": "H1",
-      "text": "Ontario’s Digital Library",
-      "page": 1
+      "text": "Working T ogether",
+      "page": 0
     },
     {
       "level": "H1",
-      "text": "Summary",
+      "text": "Ontario’s Digital Library",
       "page": 1
-    },
-    {
-      "level": "H2",
-      "text": "Background",
-      "page": 2
     },
     {
       "level": "H3",
@@ -52,7 +47,7 @@
       "page": 4
     },
     {
-      "level": "H1",
+      "level": "H3",
       "text": "Guidance and Advice:",
       "page": 4
     },
@@ -103,27 +98,12 @@
     },
     {
       "level": "H2",
-      "text": "Approach and Specific Proposal Requirements",
-      "page": 6
-    },
-    {
-      "level": "H2",
       "text": "Evaluation and Awarding of Contract",
       "page": 7
     },
     {
-      "level": "H2",
-      "text": "Appendix A: ODL Envisioned Phases & Funding",
-      "page": 8
-    },
-    {
       "level": "H3",
       "text": "Phase I: Business Planning",
-      "page": 8
-    },
-    {
-      "level": "H2",
-      "text": "Result: The ODL business plan",
       "page": 8
     },
     {
@@ -135,11 +115,6 @@
       "level": "H3",
       "text": "Phase III: Operating and Growing the ODL",
       "page": 8
-    },
-    {
-      "level": "H2",
-      "text": "Appendix B: ODL Steering Committee Terms of Reference",
-      "page": 10
     },
     {
       "level": "H3",
@@ -185,11 +160,6 @@
       "level": "H3",
       "text": "9. Financial and Administrative Policies",
       "page": 12
-    },
-    {
-      "level": "H2",
-      "text": "Appendix C: ODL’s Envisioned Electronic Resources",
-      "page": 13
     }
   ]
 }

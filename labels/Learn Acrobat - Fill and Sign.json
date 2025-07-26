@@ -1,0 +1,24 @@
+{
+  "title": "",
+  "outline": [
+    { "level": "H1", "text": "Types of PDF forms", "page": 2 },
+    { "level": "H2", "text": "Fill and sign PDF forms", "page": 2 },
+    { "level": "H2", "text": "To fill text fields", "page": 2 },
+    { "level": "H2", "text": "To fill radio option fields", "page": 5 },
+    { "level": "H2", "text": "To add signature and initials", "page": 5 },
+    { "level": "H1", "text": "Fill in PDF Forms", "page": 8 },
+    { "level": "H2", "text": "Is the form fillable?", "page": 8 },
+    { "level": "H2", "text": "Fill in interactive forms", "page": 8 },
+    { "level": "H1", "text": "Auto-Complete forms (interactive forms only)", "page": 10 },
+    { "level": "H2", "text": "Enable the Auto-Complete option", "page": 10 },
+    { "level": "H2", "text": "Delete an entry from the Auto-Complete memory", "page": 10 },
+    { "level": "H1", "text": "Change flat forms to fillable (Acrobat Pro)", "page": 12 },
+    { "level": "H1", "text": "Save forms", "page": 13 },
+    { "level": "H1", "text": "Print forms", "page": 14 },
+    { "level": "H1", "text": "Clear unsaved form entries", "page": 15 },
+    { "level": "H2", "text": "Sign an agreement", "page": 16 },
+    { "level": "H2", "text": "Sign using Acrobat/Reader desktop application", "page": 16 },
+    { "level": "H2", "text": "Sign using the email link", "page": 17 },
+    { "level": "H1", "text": "Remove your signature or initials", "page": 18 }
+  ]
+}

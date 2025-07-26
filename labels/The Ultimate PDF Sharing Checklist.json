@@ -1,0 +1,26 @@
+{
+  "title": "The Ultimate PDF Sharing Checklist",
+  "outline": [
+    { "level": "H1", "text": "General Sharing Checklist", "page": 1 },
+    { "level": "H2", "text": "Open Your PDF", "page": 1 },
+    { "level": "H2", "text": "Choose Your Sharing Method", "page": 1 },
+    { "level": "H2", "text": "Set Permissions", "page": 1 },
+    { "level": "H2", "text": "Add Recipients", "page": 1 },
+    { "level": "H2", "text": "Customize Your Message", "page": 1 },
+    { "level": "H2", "text": "Create and Share the Link", "page": 1 },
+    { "level": "H2", "text": "Send the Invitation", "page": 1 },
+    { "level": "H2", "text": "Follow Up", "page": 2 },
+    
+    { "level": "H1", "text": "Sharing Checklist for Real Estate Professionals", "page": 2 },
+    { "level": "H2", "text": "Open Your Property Document", "page": 2 },
+    { "level": "H2", "text": "Choose Your Sharing Method", "page": 2 },
+    { "level": "H2", "text": "Set Permissions", "page": 2 },
+    { "level": "H2", "text": "Add Clients and Stakeholders", "page": 2 },
+    { "level": "H2", "text": "Customize Your Message", "page": 3 },
+    { "level": "H2", "text": "Create and Share the Link", "page": 3 },
+    { "level": "H2", "text": "Send the Invitation", "page": 3 },
+    { "level": "H2", "text": "Follow Up", "page": 3 },
+
+    { "level": "H1", "text": "Conclusion", "page": 3 }
+  ]
+}

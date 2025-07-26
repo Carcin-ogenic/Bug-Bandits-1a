@@ -2,7 +2,7 @@
   "title": "",
   "outline": [
     {
-      "level": "H1",
+      "level": "H2",
       "text": "Revision History",
       "page": 2
     },
@@ -13,13 +13,13 @@
     },
     {
       "level": "H1",
-      "text": "Acknowledgements",
-      "page": 4
+      "text": "1. Introduction to the Foundation Level Extensions",
+      "page": 5
     },
     {
       "level": "H1",
-      "text": "1. Introduction to the Foundation Level Extensions",
-      "page": 5
+      "text": "2. Introduction to Foundation Level Agile Tester Extension",
+      "page": 6
     },
     {
       "level": "H2",
@@ -52,23 +52,18 @@
       "page": 8
     },
     {
+      "level": "H1",
+      "text": "3. Overview of the Foundation Level Extension –Agile Tester",
+      "page": 9
+    },
+    {
       "level": "H2",
       "text": "3.1 Business Outcomes",
       "page": 9
     },
     {
-      "level": "H2",
-      "text": "3.2 Content",
-      "page": 9
-    },
-    {
       "level": "H1",
       "text": "4. References",
-      "page": 11
-    },
-    {
-      "level": "H2",
-      "text": "4.1 Trademarks",
       "page": 11
     },
     {
