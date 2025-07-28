@@ -10,6 +10,13 @@ docker build --platform linux/amd64 -t bug-bandits-1a:latest .
 ```
 
 ### Run the Container
+
+**Primary Command (Linux/macOS):**
+```bash
+docker run --rm -v $(pwd)/input:/app/input -v $(pwd)/output:/app/output --network none mysolutionname:somerandomidentifier
+```
+
+**Alternative Command (Windows/Cross-platform):**
 ```bash
 docker run --rm \
   --mount type=bind,source="$(pwd)/input",target=/app/input,readonly \
