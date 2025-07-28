@@ -1,0 +1,33 @@
+# Dockerignore file to exclude unnecessary files from Docker build context
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.env
+.git/
+.gitignore
+*.md
+.DS_Store
+Thumbs.db
+
+# Exclude training/development files (not needed for inference)
+script.py
+train_classifier.py
+temp.py
+diagnostic_analysis.py
+train.csv
+training_pdfs/
+labels/
+pdfs/
+output/
+
+# Exclude Docker files from being copied into the image
+Dockerfile
+.dockerignore
+
+# Exclude test setup directories
+docker_test/
