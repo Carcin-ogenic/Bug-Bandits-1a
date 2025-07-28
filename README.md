@@ -11,7 +11,11 @@ docker build --platform linux/amd64 -t bug-bandits-1a:latest .
 
 ### Run the Container
 ```bash
-docker run --rm -v $(pwd)/input:/app/input -v $(pwd)/output:/app/output --network none bug-bandits-1a:latest
+docker run --rm \
+  --mount type=bind,source="$(pwd)/input",target=/app/input,readonly \
+  --mount type=bind,source="$(pwd)/output",target=/app/output \
+  --network none \
+  bug-bandits-1a:latest
 ```
 
 ## Expected Behavior
